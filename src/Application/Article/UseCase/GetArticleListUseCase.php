@@ -18,11 +18,29 @@ class GetArticleListUseCase
     }
 
     /**
+     * Get articles with optional filters and sorting
+     * 
+     * @param int $limit
+     * @param int $offset
+     * @param array $filters ['language' => 'en']
+     * @param string $orderBy 'publishedAt', 'createdAt', 'updatedAt', 'title'
+     * @param string $orderDirection 'ASC' or 'DESC'
      * @return ArticleDTO[]
      */
-    public function execute(int $limit = 20, int $offset = 0): array
-    {
-        $articleList = $this->articleRepository->findAll($limit, $offset);
+    public function execute(
+        int $limit = 20,
+        int $offset = 0,
+        array $filters = [],
+        string $orderBy = 'publishedAt',
+        string $orderDirection = 'DESC'
+    ): array {
+        $articleList = $this->articleRepository->findWithFilters(
+            $filters,
+            $orderBy,
+            $orderDirection,
+            $limit,
+            $offset
+        );
 
         return array_map(
             fn(Article $article) => new ArticleDTO(
@@ -42,8 +60,8 @@ class GetArticleListUseCase
         );
     }
 
-    public function getTotalCount(): int
+    public function getTotalCount(array $filters = []): int
     {
-        return $this->articleRepository->count();
+        return $this->articleRepository->countWithFilters($filters);
     }
 }

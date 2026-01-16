@@ -66,6 +66,55 @@ class DoctrineArticleRepository implements ArticleRepositoryInterface
         return array_map(fn(ArticleEntity $entity) => $this->toDomain($entity), $articleEntities);
     }
 
+    public function findWithFilters(
+        array $filters = [],
+        string $orderBy = 'publishedAt',
+        string $orderDirection = 'DESC',
+        int $limit = 100,
+        int $offset = 0
+    ): array {
+        $qb = $this->entityManager->createQueryBuilder();
+        $qb->select('a')
+            ->from(ArticleEntity::class, 'a');
+
+        // Apply filters
+        if (!empty($filters['language'])) {
+            $qb->andWhere('a.language = :language')
+                ->setParameter('language', $filters['language']);
+        }
+
+        // Apply sorting
+        $allowedOrderBy = ['publishedAt', 'createdAt', 'updatedAt', 'title'];
+        if (in_array($orderBy, $allowedOrderBy)) {
+            $orderDirection = strtoupper($orderDirection) === 'ASC' ? 'ASC' : 'DESC';
+            $qb->orderBy('a.' . $orderBy, $orderDirection);
+        } else {
+            $qb->orderBy('a.publishedAt', 'DESC');
+        }
+
+        $qb->setMaxResults($limit)
+            ->setFirstResult($offset);
+
+        $articleEntities = $qb->getQuery()->getResult();
+
+        return array_map(fn(ArticleEntity $entity) => $this->toDomain($entity), $articleEntities);
+    }
+
+    public function countWithFilters(array $filters = []): int
+    {
+        $qb = $this->entityManager->createQueryBuilder();
+        $qb->select('COUNT(a.id)')
+            ->from(ArticleEntity::class, 'a');
+
+        // Apply filters
+        if (!empty($filters['language'])) {
+            $qb->andWhere('a.language = :language')
+                ->setParameter('language', $filters['language']);
+        }
+
+        return (int) $qb->getQuery()->getSingleScalarResult();
+    }
+
     public function existsByUrl(string $url): bool
     {
         $repository = $this->entityManager->getRepository(ArticleEntity::class);
