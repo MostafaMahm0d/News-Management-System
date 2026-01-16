@@ -8,6 +8,7 @@ namespace App\Presentation\Controller;
 use App\Application\Article\UseCase\GetArticleByIdUseCase;
 use App\Application\Article\UseCase\GetArticleListUseCase;
 use App\Domain\Article\Exception\ArticleNotFoundException;
+use App\Service\RedisCacheService;
 use Nelmio\ApiDocBundle\Annotation\Model;
 use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -20,6 +21,11 @@ use Symfony\Component\Routing\Attribute\Route;
 #[OA\Tag(name: 'Articles')]
 class ArticleController extends AbstractController
 {
+    public function __construct(
+        private RedisCacheService $cache
+    ) {
+    }
+
     #[Route('', name: 'list', methods: ['GET'])]
     #[OA\Get(
         path: '/api/articles',
@@ -96,10 +102,23 @@ class ArticleController extends AbstractController
             $filters['language'] = $language;
         }
 
+        // Create cache key based on request parameters
+        $cacheKey = sprintf('articles_list_%d_%d_%s_%s_%s', $limit, $offset, $language ?? 'all', $orderBy, $orderDirection);
+
+
+        // Try to get from cache
+        $cachedData = $this->cache->get($cacheKey);
+        
+        if ($cachedData !== null) {
+            // Return cached response
+            return $this->json($cachedData);
+        }
+
+        // Cache miss - fetch from database
         $articleList = $getArticleListUseCase->execute($limit, $offset, $filters, $orderBy, $orderDirection);
         $totalCount = $getArticleListUseCase->getTotalCount($filters);
 
-        return $this->json([
+        $responseData = [
             'data' => $articleList,
             'meta' => [
                 'total' => $totalCount,
@@ -108,8 +127,14 @@ class ArticleController extends AbstractController
                 'filters' => $filters,
                 'orderBy' => $orderBy,
                 'orderDirection' => $orderDirection,
+                'cached' => false,
             ],
-        ]);
+        ];
+
+        // Store in cache for 5 minutes (300 seconds)
+        $this->cache->set($cacheKey, $responseData, 300);
+
+        return $this->json($responseData);
     }
 
     #[Route('/{id}', name: 'show', methods: ['GET'])]
@@ -157,13 +182,30 @@ class ArticleController extends AbstractController
     )]
     public function show(string $id, GetArticleByIdUseCase $getArticleByIdUseCase): JsonResponse
     {
+        // Create cache key for single article
+        $cacheKey = 'article_' . $id;
+
+        // Try to get from cache
+        $cachedData = $this->cache->get($cacheKey);
+        
+        if ($cachedData !== null) {
+            // Return cached response
+            return $this->json($cachedData);
+        }
+
         try {
             $article = $getArticleByIdUseCase->execute($id);
 
-            return $this->json([
+            $responseData = [
                 'success' => true,
                 'data' => $article,
-            ]);
+                'cached' => false,
+            ];
+
+            // Store in cache for 10 minutes (600 seconds)
+            $this->cache->set($cacheKey, $responseData, 600);
+
+            return $this->json($responseData);
         } catch (ArticleNotFoundException $e) {
             return $this->json([
                 'success' => false,
@@ -175,6 +217,60 @@ class ArticleController extends AbstractController
                 'message' => 'Failed to retrieve article: ' . $e->getMessage(),
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
+    }
+
+    #[Route('/cache/clear', name: 'cache_clear', methods: ['DELETE'])]
+    #[OA\Delete(
+        path: '/api/articles/cache/clear',
+        summary: 'Clear articles cache',
+        description: 'Clears all cached article data'
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'Cache cleared successfully',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean', example: true),
+                new OA\Property(property: 'message', type: 'string', example: 'Cache cleared successfully')
+            ]
+        )
+    )]
+    public function clearCache(): JsonResponse
+    {
+        $result = $this->cache->clear();
+        
+        return $this->json([
+            'success' => $result,
+            'message' => $result ? 'Cache cleared successfully' : 'Failed to clear cache',
+        ]);
+    }
+
+    #[Route('/cache/test', name: 'cache_test', methods: ['GET'])]
+    #[OA\Get(
+        path: '/api/articles/cache/test',
+        summary: 'Test Redis connection',
+        description: 'Tests if Redis cache is working properly'
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'Cache test result',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean'),
+                new OA\Property(property: 'message', type: 'string'),
+                new OA\Property(property: 'timestamp', type: 'string')
+            ]
+        )
+    )]
+    public function testCache(): JsonResponse
+    {
+        $isWorking = $this->cache->testConnection();
+        
+        return $this->json([
+            'success' => $isWorking,
+            'message' => $isWorking ? 'Redis cache is working!' : 'Redis cache connection failed',
+            'timestamp' => date('Y-m-d H:i:s'),
+        ]);
     }
 
 

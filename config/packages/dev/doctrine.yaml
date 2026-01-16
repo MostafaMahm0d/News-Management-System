@@ -1,0 +1,8 @@
+doctrine:
+    dbal:
+        # Log all SQL queries in development
+        logging: true
+        profiling: true
+        # Use the default logger which logs to monolog
+        # Log all queries including connection and disconnection
+        use_savepoints: true

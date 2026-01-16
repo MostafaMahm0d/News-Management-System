@@ -63,10 +63,25 @@ services:
     networks:
       - symfony
 
+  # Redis Service
+  redis:
+    image: redis:alpine
+    container_name: symfony_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+    networks:
+      - symfony
+    command: redis-server --appendonly yes
+
 networks:
   symfony:
     driver: bridge
 
 volumes:
   dbdata:
+    driver: local
+  redisdata:
     driver: local
