@@ -9,6 +9,13 @@ framework:
         default_options:
             max_redirects: 7
 
+    serializer:
+        enabled: true
+        enable_attributes: true
+
+    property_info:
+        enabled: true
+
     #esi: true
     #fragments: true
 

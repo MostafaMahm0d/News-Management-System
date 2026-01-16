@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Article\DTO;
 
-class ArticleDTO
+class ArticleDTO implements \JsonSerializable
 {
     public function __construct(
         public readonly string $id,
@@ -19,5 +19,22 @@ class ArticleDTO
         public readonly string $createdAt,
         public readonly string $updatedAt
     ) {
+    }
+
+    public function jsonSerialize(): array
+    {
+        return [
+            'id' => $this->id,
+            'title' => $this->title,
+            'description' => $this->description,
+            'content' => $this->content,
+            'url' => $this->url,
+            'imageUrl' => $this->imageUrl,
+            'publishedAt' => $this->publishedAt,
+            'sourceName' => $this->sourceName,
+            'language' => $this->language,
+            'createdAt' => $this->createdAt,
+            'updatedAt' => $this->updatedAt,
+        ];
     }
 }
