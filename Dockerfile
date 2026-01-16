@@ -12,7 +12,8 @@ RUN apt-get update && apt-get install -y \
     libicu-dev \
     zip \
     unzip \
-    nginx
+    nginx \
+    gosu
 
 # Clear cache
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
@@ -29,12 +30,16 @@ WORKDIR /var/www/html
 # Copy existing application directory contents
 COPY . /var/www/html
 
+# Copy entrypoint script
+COPY docker/php/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
 # Copy existing application directory permissions
 RUN chown -R www-data:www-data /var/www/html
 
-# Change current user to www-data
-USER www-data
-
 # Expose port 9000 and start php-fpm server
 EXPOSE 9000
+
+# Use custom entrypoint
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 CMD ["php-fpm"]
