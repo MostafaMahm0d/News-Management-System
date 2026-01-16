@@ -1,0 +1,17 @@
+nelmio_api_doc:
+    documentation:
+        info:
+            title: News Management System API
+            description: API documentation for the News Management System
+            version: 1.0.0
+        paths:
+            /api: ~
+        components:
+            securitySchemes:
+                Bearer:
+                    type: http
+                    scheme: bearer
+                    bearerFormat: JWT
+    areas:
+        path_patterns:
+            - ^/api(?!/doc$)
