@@ -31,8 +31,5 @@ class Language
         return $this->value;
     }
 
-    public static function getValidLanguages(): array
-    {
-        return self::VALID_LANGUAGES;
-    }
+    
 }

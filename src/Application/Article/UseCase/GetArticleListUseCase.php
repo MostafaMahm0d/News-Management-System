@@ -22,7 +22,7 @@ class GetArticleListUseCase
      * 
      * @param int $limit
      * @param int $offset
-     * @param array $filters ['language' => 'en']
+     * @param array<string, mixed> $filters ['language' => 'en']
      * @param string $orderBy 'publishedAt', 'createdAt', 'updatedAt', 'title'
      * @param string $orderDirection 'ASC' or 'DESC'
      * @return ArticleDTO[]
@@ -60,6 +60,12 @@ class GetArticleListUseCase
         );
     }
 
+    /**
+     * Get total count of articles matching filters
+     * 
+     * @param array<string, mixed> $filters
+     * @return int
+     */
     public function getTotalCount(array $filters = []): int
     {
         return $this->articleRepository->countWithFilters($filters);

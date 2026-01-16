@@ -103,10 +103,8 @@ class FetchArticlesUseCase
             $page++;
 
             // Add 2 second delay to avoid rate limiting
-            if (!empty($articles)) {
-                $this->logger->debug('Waiting 2 seconds before next API call');
-                sleep(2);
-            }
+            $this->logger->debug('Waiting 2 seconds before next API call');
+            sleep(2);
         }
 
         $result = [
@@ -121,6 +119,13 @@ class FetchArticlesUseCase
         return $result;
     }
 
+    /**
+     * Create an Article entity from API data
+     * 
+     * @param array<string, mixed> $articleData
+     * @param string $lang
+     * @return Article
+     */
     private function createArticleFromData(array $articleData, string $lang): Article
     {
     

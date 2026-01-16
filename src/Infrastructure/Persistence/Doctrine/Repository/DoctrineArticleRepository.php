@@ -27,6 +27,12 @@ class DoctrineArticleRepository implements ArticleRepositoryInterface
         $this->entityManager = $entityManager;
     }
 
+    /**
+     * Save a new article to the database
+     * 
+     * @param Article $article The article entity to save
+     * @return void
+     */
     public function save(Article $article): void
     {
         
@@ -46,6 +52,12 @@ class DoctrineArticleRepository implements ArticleRepositoryInterface
         $this->entityManager->flush();
     }
 
+    /**
+     * Find an article by its ID
+     * 
+     * @param ArticleId $id The article ID value object
+     * @return Article|null Returns the article if found, null otherwise
+     */
     public function findById(ArticleId $id): ?Article
     {
         $repository = $this->entityManager->getRepository(ArticleEntity::class);
@@ -58,6 +70,13 @@ class DoctrineArticleRepository implements ArticleRepositoryInterface
         return $this->toDomain($articleEntity);
     }
 
+    /**
+     * Find all articles with pagination
+     * 
+     * @param int $limit Maximum number of articles to return (default: 100)
+     * @param int $offset Number of articles to skip (default: 0)
+     * @return Article[] Array of article entities
+     */
     public function findAll(int $limit = 100, int $offset = 0): array
     {
         $repository = $this->entityManager->getRepository(ArticleEntity::class);
@@ -66,6 +85,16 @@ class DoctrineArticleRepository implements ArticleRepositoryInterface
         return array_map(fn(ArticleEntity $entity) => $this->toDomain($entity), $articleEntities);
     }
 
+    /**
+     * Find articles with filters and sorting
+     * 
+     * @param array<string, mixed> $filters Associative array of filters (e.g., ['language' => 'en'])
+     * @param string $orderBy Field to sort by: 'publishedAt', 'createdAt', 'updatedAt', 'title' (default: 'publishedAt')
+     * @param string $orderDirection Sort direction: 'ASC' or 'DESC' (default: 'DESC')
+     * @param int $limit Maximum number of articles to return (default: 100)
+     * @param int $offset Number of articles to skip for pagination (default: 0)
+     * @return Article[] Array of article entities matching the filters
+     */
     public function findWithFilters(
         array $filters = [],
         string $orderBy = 'publishedAt',
@@ -100,6 +129,12 @@ class DoctrineArticleRepository implements ArticleRepositoryInterface
         return array_map(fn(ArticleEntity $entity) => $this->toDomain($entity), $articleEntities);
     }
 
+    /**
+     * Count articles matching the given filters
+     * 
+     * @param array<string, mixed> $filters Associative array of filters (e.g., ['language' => 'en'])
+     * @return int Total number of articles matching the filters
+     */
     public function countWithFilters(array $filters = []): int
     {
         $qb = $this->entityManager->createQueryBuilder();
@@ -115,6 +150,12 @@ class DoctrineArticleRepository implements ArticleRepositoryInterface
         return (int) $qb->getQuery()->getSingleScalarResult();
     }
 
+    /**
+     * Check if an article exists by its URL
+     * 
+     * @param string $url The article URL to check
+     * @return bool True if article exists, false otherwise
+     */
     public function existsByUrl(string $url): bool
     {
         $repository = $this->entityManager->getRepository(ArticleEntity::class);
@@ -123,6 +164,12 @@ class DoctrineArticleRepository implements ArticleRepositoryInterface
         return $count > 0;
     }
 
+    /**
+     * Find an article by its URL
+     * 
+     * @param string $url The article URL to search for
+     * @return Article|null Returns the article if found, null otherwise
+     */
     public function findByUrl(string $url): ?Article
     {
         $repository = $this->entityManager->getRepository(ArticleEntity::class);
@@ -135,6 +182,13 @@ class DoctrineArticleRepository implements ArticleRepositoryInterface
         return $this->toDomain($articleEntity);
     }
 
+    /**
+     * Update an existing article in the database
+     * 
+     * @param Article $article The article entity with updated data
+     * @return void
+     * @throws \RuntimeException If article is not found
+     */
     public function update(Article $article): void
     {
         $repository = $this->entityManager->getRepository(ArticleEntity::class);
@@ -181,6 +235,11 @@ class DoctrineArticleRepository implements ArticleRepositoryInterface
         $this->entityManager->flush();
     }
 
+    /**
+     * Count total number of articles in the database
+     * 
+     * @return int Total number of articles
+     */
     public function count(): int
     {
         $repository = $this->entityManager->getRepository(ArticleEntity::class);

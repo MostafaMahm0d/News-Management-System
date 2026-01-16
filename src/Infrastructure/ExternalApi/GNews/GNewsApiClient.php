@@ -28,7 +28,7 @@ class GNewsApiClient
      * @param string|null $lang Language code (en, ar, etc.)
      * @param int $max Maximum number of articles (default: 10, max: 100)
      * @param int $page Page number (1-based)
-     * @return array
+     * @return mixed[]
      */
     public function getTopHeadlines(string|null $category = 'general', string|null $lang = 'en', int $max = 10, int $page = 1): array
     {
@@ -87,7 +87,7 @@ class GNewsApiClient
      * @param string|null $lang Language code
      * @param int $max Maximum number of articles
      * @param int $page Page number (1-based)
-     * @return array
+     * @return array<int, array<string, mixed>>
      */
     public function search(string|null $query, string|null $lang = 'en', int $max = 10, int $page = 1): array
     {

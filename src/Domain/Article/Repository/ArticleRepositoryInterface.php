@@ -21,7 +21,7 @@ interface ArticleRepositoryInterface
     /**
      * Find articles with filters and sorting
      * 
-     * @param array $filters ['language' => 'en']
+     * @param array<string, mixed> $filters ['language' => 'en']
      * @param string $orderBy 'publishedAt'
      * @param string $orderDirection 'ASC' or 'DESC'
      * @param int $limit
@@ -39,7 +39,7 @@ interface ArticleRepositoryInterface
     /**
      * Count articles with filters
      * 
-     * @param array $filters ['language' => 'en']
+     * @param array<string, mixed> $filters ['language' => 'en']
      * @return int
      */
     public function countWithFilters(array $filters = []): int;
