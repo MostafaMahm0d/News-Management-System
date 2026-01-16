@@ -7,6 +7,7 @@
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
+    gnews_api_key: '%env(GNEWS_API_KEY)%'
 
 services:
     # default configuration for services in *this* file
@@ -18,6 +19,25 @@ services:
     # this creates a service per class whose id is the fully-qualified class name
     App\:
         resource: '../src/'
+        exclude:
+            - '../src/Domain/Article/Entity/'
+            - '../src/Infrastructure/Persistence/Doctrine/Entity/'
+            - '../src/Kernel.php'
+
+    # Domain repository interface binding
+    App\Domain\Article\Repository\ArticleRepositoryInterface:
+        alias: App\Infrastructure\Persistence\Doctrine\Repository\DoctrineArticleRepository
+
+    # GNews API Client
+    App\Infrastructure\ExternalApi\GNews\GNewsApiClient:
+        arguments:
+            $apiKey: '%gnews_api_key%'
+            $logger: '@monolog.logger.gnews'
+
+    # Fetch Articles Use Case with GNews logger
+    App\Application\Article\UseCase\FetchArticlesUseCase:
+        arguments:
+            $logger: '@monolog.logger.gnews'
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
