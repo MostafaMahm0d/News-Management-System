@@ -44,7 +44,7 @@ class FetchArticlesCommand extends Command
         $max = (int) $input->getOption('max');
 
         $io->title('Fetching Articles from GNews API');
-        $io->info(sprintf('Category: %s, Language: %s, Max: %d', $category, $lang, $max));
+        
 
         try {
             $result = $this->fetchArticlesUseCase->execute($category, $lang, $max);
